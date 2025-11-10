@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Analysis Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-brown: #6d4c41;
+            --light-brown: #a1887f;
+            --dark-brown: #4e342e;
+            --cream: #f5f5dc;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--white) 100%);
+            min-height: 100vh;
+            color: var(--dark-brown);
+        }
+
+        .welcome-bg {
+            background: linear-gradient(rgba(109, 76, 65, 0.8), rgba(78, 52, 46, 0.8)), url('https://picsum.photos/seed/education/1920/1080.jpg');
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .auth-card h2 {
+            color: var(--primary-brown);
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-brown);
+            border-color: var(--primary-brown);
+            color: white;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: var(--dark-brown);
+            border-color: var(--dark-brown);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(109, 76, 65, 0.3);
+        }
+
+        .sidebar {
+            background-color: var(--primary-brown);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            position: fixed;
+            width: 250px;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background-color: var(--light-brown);
+            color: white;
+            font-weight: 600;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card.primary .stat-icon {
+            background-color: rgba(109, 76, 65, 0.2);
+            color: var(--primary-brown);
+        }
+
+        .stat-card.success .stat-icon {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .stat-card.warning .stat-icon {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+        }
+
+        .stat-card.danger .stat-icon {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .performance-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .performance-badge.excellent {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+        }
+
+        .performance-badge.good {
+            background-color: rgba(33, 150, 243, 0.2);
+            color: #1565c0;
+        }
+
+        .performance-badge.average {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: #e65100;
+        }
+
+        .performance-badge.poor {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #c62828;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .table thead th {
+            background-color: var(--light-brown);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .btn-action {
+            padding: 5px 10px;
+            margin: 0 2px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .modal-content {
+            border-radius: 10px;
+        }
+
+        .modal-header {
+            background-color: var(--primary-brown);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .form-control, .form-select {
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            padding: 10px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-brown);
+            box-shadow: 0 0 0 0.25rem rgba(109, 76, 65, 0.25);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        .toast {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.success {
+            border-left: 5px solid #4caf50;
+        }
+
+        .toast.error {
+            border-left: 5px solid #f44336;
+        }
+
+        .toast.info {
+            border-left: 5px solid #2196f3;
+        }
+
+        .welcome-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+        }
+
+        .toggle-sidebar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 101;
+            background-color: var(--primary-brown);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .toggle-sidebar {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome/Login/Signup Page -->
+    <div id="welcomePage" class="welcome-bg">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 text-center text-white mb-5">
+                    <h1 class="welcome-title">Student Performance Analysis Dashboard</h1>
+                    <p class="welcome-subtitle">An analytics-driven student management system that identifies top/bottom performers, attendance impact on grades, and subject difficulty.</p>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-5 mb-4">
+                    <div class="auth-card">
+                        <h2><i class="bi bi-person-circle me-2"></i>Login</h2>
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <input type="email" class="form-control" id="loginEmail" placeholder="Email" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary-custom w-100">Login</button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <p>Don't have an account? <a href="#" id="showSignup">Sign Up</a></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 mb-4">
+                    <div class="auth-card">
+                        <h2><i class="bi bi-person-plus-fill me-2"></i>Sign Up</h2>
+                        <form id="signupForm">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" id="signupName" placeholder="Full Name" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="email" class="form-control" id="signupEmail" placeholder="Email" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="password" class="form-control" id="signupPassword" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary-custom w-100">Sign Up</button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <p>Already have an account? <a href="#" id="showLogin">Login</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" style="display: none;">
+        <button class="toggle-sidebar" id="toggleSidebar">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="text-center mb-4">
+                <h4><i class="bi bi-mortarboard-fill me-2"></i>EduAnalytics</h4>
+            </div>
+            <nav class="nav flex-column">
+                <a class="nav-link active" href="#" data-page="overview">
+                    <i class="bi bi-speedometer2 me-2"></i><span>Overview</span>
+                </a>
+                <a class="nav-link" href="#" data-page="students">
+                    <i class="bi bi-people-fill me-2"></i><span>Students</span>
+                </a>
+                <a class="nav-link" href="#" data-page="subjects">
+                    <i class="bi bi-book-fill me-2"></i><span>Subjects</span>
+                </a>
+                <a class="nav-link" href="#" data-page="marks">
+                    <i class="bi bi-graph-up me-2"></i><span>Marks</span>
+                </a>
+                <a class="nav-link" href="#" data-page="attendance">
+                    <i class="bi bi-calendar-check-fill me-2"></i><span>Attendance</span>
+                </a>
+                <a class="nav-link" href="#" data-page="feedback">
+                    <i class="bi bi-chat-dots-fill me-2"></i><span>Feedback</span>
+                </a>
+                <a class="nav-link" href="#" data-page="performance">
+                    <i class="bi bi-award-fill me-2"></i><span>Performance Analysis</span>
+                </a>
+                <a class="nav-link" href="#" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right me-2"></i><span>Logout</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Overview Page -->
+            <div id="overviewPage" class="page-content">
+                <h2 class="mb-4">Dashboard Overview</h2>
+                
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card primary">
+                            <div class="stat-icon">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <h3 id="totalStudents">0</h3>
+                            <p>Total Students</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card success">
+                            <div class="stat-icon">
+                                <i class="bi bi-book-fill"></i>
+                            </div>
+                            <h3 id="totalSubjects">0</h3>
+                            <p>Total Subjects</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card warning">
+                            <div class="stat-icon">
+                                <i class="bi bi-percent"></i>
+                            </div>
+                            <h3 id="avgAttendance">0%</h3>
+                            <p>Avg. Attendance</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card danger">
+                            <div class="stat-icon">
+                                <i class="bi bi-graph-up-arrow"></i>
+                            </div>
+                            <h3 id="avgMarks">0</h3>
+                            <p>Avg. Marks</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Top Performers</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Rank</th>
+                                                <th>Name</th>
+                                                <th>Avg. Marks</th>
+                                                <th>Performance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="topPerformersTable">
+                                            <!-- Populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Bottom Performers</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Rank</th>
+                                                <th>Name</th>
+                                                <th>Avg. Marks</th>
+                                                <th>Performance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="bottomPerformersTable">
+                                            <!-- Populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Removed Marks Distribution, Subject Difficulty, and Attendance vs. Performance charts -->
+            </div>
+
+            <!-- Students Page -->
+            <div id="studentsPage" class="page-content" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Students Management</h2>
+                    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                        <i class="bi bi-plus-circle me-2"></i>Add Student
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Grade</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsTable">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subjects Page -->
+            <div id="subjectsPage" class="page-content" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Subjects Management</h2>
+                    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addSubjectModal">
+                        <i class="bi bi-plus-circle me-2"></i>Add Subject
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Code</th>
+                                        <th>Credits</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="subjectsTable">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marks Page -->
+            <div id="marksPage" class="page-content" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Marks Management</h2>
+                    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addMarkModal">
+                        <i class="bi bi-plus-circle me-2"></i>Add Mark
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Student</th>
+                                        <th>Subject</th>
+                                        <th>Marks</th>
+                                        <th>Grade</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="marksTable">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Page -->
+            <div id="attendancePage" class="page-content" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Attendance Management</h2>
+                    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
+                        <i class="bi bi-plus-circle me-2"></i>Add Attendance
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Student</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTable">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Page -->
+            <div id="feedbackPage" class="page-content" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Feedback Management</h2>
+                    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addFeedbackModal">
+                        <i class="bi bi-plus-circle me-2"></i>Add Feedback
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Student</th>
+                                        <th>Subject</th>
+                                        <th>Rating</th>
+                                        <th>Comments</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="feedbackTable">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Analysis Page -->
+            <div id="performancePage" class="page-content" style="display: none;">
+                <h2 class="mb-4">Performance Analysis</h2>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>How Performance is Calculated</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Our performance analysis system uses a comprehensive approach to evaluate student performance:</p>
+                        <ul>
+                            <li><strong>Academic Performance (70% weight):</strong> Based on average marks across all subjects</li>
+                            <li><strong>Attendance (20% weight):</strong> Regular attendance is crucial for academic success</li>
+                            <li><strong>Subject Feedback (10% weight):</strong> Student feedback and engagement with subjects</li>
+                        </ul>
+                        <p>The final performance score is calculated as:</p>
+                        <p><strong>Performance Score = (Average Marks × 0.7) + (Attendance Percentage × 0.2) + (Average Feedback Rating × 0.1)</strong></p>
+                        <p>Performance Categories:</p>
+                        <ul>
+                            <li><strong>Excellent (90-100):</strong> Outstanding performance across all metrics</li>
+                            <li><strong>Good (75-89):</strong> Above average performance with room for improvement</li>
+                            <li><strong>Average (60-74):</strong> Satisfactory performance but needs attention</li>
+                            <li><strong>Poor (Below 60):</strong> Requires immediate intervention and support</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Performance by Grade</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="performanceByGradeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Subject Performance Comparison</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="subjectPerformanceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Detailed Performance Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Average Marks</th>
+                                        <th>Attendance</th>
+                                        <th>Feedback Score</th>
+                                        <th>Performance Score</th>
+                                        <th>Performance Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="performanceAnalysisTable">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addStudentForm">
+                        <div class="mb-3">
+                            <label for="studentName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="studentName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="studentEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentGrade" class="form-label">Grade</label>
+                            <select class="form-select" id="studentGrade" required>
+                                <option value="">Select Grade</option>
+                                <option value="9">Grade 9</option>
+                                <option value="10">Grade 10</option>
+                                <option value="11">Grade 11</option>
+                                <option value="12">Grade 12</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom">Add Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Subject Modal -->
+    <div class="modal fade" id="addSubjectModal" tabindex="-1" aria-labelledby="addSubjectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addSubjectModalLabel">Add New Subject</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addSubjectForm">
+                        <div class="mb-3">
+                            <label for="subjectName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="subjectName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subjectCode" class="form-label">Code</label>
+                            <input type="text" class="form-control" id="subjectCode" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subjectCredits" class="form-label">Credits</label>
+                            <input type="number" class="form-control" id="subjectCredits" min="1" max="10" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom">Add Subject</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Mark Modal -->
+    <div class="modal fade" id="addMarkModal" tabindex="-1" aria-labelledby="addMarkModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMarkModalLabel">Add New Mark</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addMarkForm">
+                        <div class="mb-3">
+                            <label for="markStudent" class="form-label">Student</label>
+                            <select class="form-select" id="markStudent" required>
+                                <option value="">Select Student</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="markSubject" class="form-label">Subject</label>
+                            <select class="form-select" id="markSubject" required>
+                                <option value="">Select Subject</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="markValue" class="form-label">Marks (0-100)</label>
+                            <input type="number" class="form-control" id="markValue" min="0" max="100" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom">Add Mark</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Attendance Modal -->
+    <div class="modal fade" id="addAttendanceModal" tabindex="-1" aria-labelledby="addAttendanceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addAttendanceModalLabel">Add Attendance Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addAttendanceForm">
+                        <div class="mb-3">
+                            <label for="attendanceStudent" class="form-label">Student</label>
+                            <select class="form-select" id="attendanceStudent" required>
+                                <option value="">Select Student</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="attendanceDate" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="attendanceDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="attendanceStatus" class="form-label">Status</label>
+                            <select class="form-select" id="attendanceStatus" required>
+                                <option value="">Select Status</option>
+                                <option value="Present">Present</option>
+                                <option value="Absent">Absent</option>
+                                <option value="Late">Late</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom">Add Attendance</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Feedback Modal -->
+    <div class="modal fade" id="addFeedbackModal" tabindex="-1" aria-labelledby="addFeedbackModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addFeedbackModalLabel">Add Feedback</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addFeedbackForm">
+                        <div class="mb-3">
+                            <label for="feedbackStudent" class="form-label">Student</label>
+                            <select class="form-select" id="feedbackStudent" required>
+                                <option value="">Select Student</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="feedbackSubject" class="form-label">Subject</label>
+                            <select class="form-select" id="feedbackSubject" required>
+                                <option value="">Select Subject</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="feedbackRating" class="form-label">Rating (1-5)</label>
+                            <select class="form-select" id="feedbackRating" required>
+                                <option value="">Select Rating</option>
+                                <option value="1">1 - Poor</option>
+                                <option value="2">2 - Fair</option>
+                                <option value="3">3 - Good</option>
+                                <option value="4">4 - Very Good</option>
+                                <option value="5">5 - Excellent</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="feedbackComments" class="form-label">Comments</label>
+                            <textarea class="form-control" id="feedbackComments" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom">Add Feedback</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Data Management
+        let students = [];
+        let subjects = [];
+        let marks = [];
+        let attendance = [];
+        let feedback = [];
+        let currentUser = null;
+
+        // Initialize data with Indian names
+        function initializeData() {
+            // Check if data exists in localStorage
+            const storedStudents = localStorage.getItem('students');
+            const storedSubjects = localStorage.getItem('subjects');
+            const storedMarks = localStorage.getItem('marks');
+            const storedAttendance = localStorage.getItem('attendance');
+            const storedFeedback = localStorage.getItem('feedback');
+
+            if (storedStudents) {
+                students = JSON.parse(storedStudents);
+            } else {
+                // Initialize with Indian names
+                students = [
+                    { id: 1, name: "Aarav Kumar", email: "aarav.kumar@example.com", grade: "10" },
+                    { id: 2, name: "Priya Sharma", email: "priya.sharma@example.com", grade: "10" },
+                    { id: 3, name: "Rohan Singh", email: "rohan.singh@example.com", grade: "11" },
+                    { id: 4, name: "Ananya Patel", email: "ananya.patel@example.com", grade: "11" },
+                    { id: 5, name: "Vikram Reddy", email: "vikram.reddy@example.com", grade: "12" },
+                    { id: 6, name: "Kavya Nair", email: "kavya.nair@example.com", grade: "12" },
+                    { id: 7, name: "Arjun Joshi", email: "arjun.joshi@example.com", grade: "9" },
+                    { id: 8, name: "Diya Gupta", email: "diya.gupta@example.com", grade: "9" },
+                    { id: 9, name: "Rahul Verma", email: "rahul.verma@example.com", grade: "10" },
+                    { id: 10, name: "Sneha Iyer", email: "sneha.iyer@example.com", grade: "10" },
+                    { id: 11, name: "Aditya Rao", email: "aditya.rao@example.com", grade: "11" },
+                    { id: 12, name: "Meera Desai", email: "meera.desai@example.com", grade: "11" },
+                    { id: 13, name: "Karan Malhotra", email: "karan.malhotra@example.com", grade: "12" },
+                    { id: 14, name: "Pooja Chatterjee", email: "pooja.chatterjee@example.com", grade: "12" },
+                    { id: 15, name: "Ravi Pillai", email: "ravi.pillai@example.com", grade: "9" },
+                    { id: 16, name: "Neha Bhatia", email: "neha.bhatia@example.com", grade: "9" },
+                    { id: 17, name: "Amit Khanna", email: "amit.khanna@example.com", grade: "10" },
+                    { id: 18, name: "Swati Agarwal", email: "swati.agarwal@example.com", grade: "10" },
+                    { id: 19, name: "Rajiv Menon", email: "rajiv.menon@example.com", grade: "11" },
+                    { id: 20, name: "Anjali Sridharan", email: "anjali.sridharan@example.com", grade: "11" }
+                ];
+                localStorage.setItem('students', JSON.stringify(students));
+            }
+
+            if (storedSubjects) {
+                subjects = JSON.parse(storedSubjects);
+            } else {
+                subjects = [
+                    { id: 1, name: "Mathematics", code: "MATH", credits: 5 },
+                    { id: 2, name: "Physics", code: "PHY", credits: 4 },
+                    { id: 3, name: "Chemistry", code: "CHEM", credits: 4 },
+                    { id: 4, name: "Biology", code: "BIO", credits: 4 },
+                    { id: 5, name: "English", code: "ENG", credits: 3 },
+                    { id: 6, name: "Hindi", code: "HIN", credits: 2 },
+                    { id: 7, name: "History", code: "HIST", credits: 2 },
+                    { id: 8, name: "Geography", code: "GEO", credits: 2 }
+                ];
+                localStorage.setItem('subjects', JSON.stringify(subjects));
+            }
+
+            if (storedMarks) {
+                marks = JSON.parse(storedMarks);
+            } else {
+                // Generate random marks for demonstration
+                marks = [];
+                for (let i = 0; i < 100; i++) {
+                    const studentId = Math.floor(Math.random() * 20) + 1;
+                    const subjectId = Math.floor(Math.random() * 8) + 1;
+                    const markValue = Math.floor(Math.random() * 40) + 60; // Random marks between 60-100
+                    
+                    // Check if this student-subject combination already exists
+                    const existingMark = marks.find(m => m.studentId === studentId && m.subjectId === subjectId);
+                    if (!existingMark) {
+                        marks.push({
+                            id: marks.length + 1,
+                            studentId: studentId,
+                            subjectId: subjectId,
+                            marks: markValue,
+                            grade: getGrade(markValue)
+                        });
+                    }
+                }
+                localStorage.setItem('marks', JSON.stringify(marks));
+            }
+
+            if (storedAttendance) {
+                attendance = JSON.parse(storedAttendance);
+            } else {
+                // Generate random attendance for demonstration
+                attendance = [];
+                for (let i = 0; i < 200; i++) {
+                    const studentId = Math.floor(Math.random() * 20) + 1;
+                    const date = new Date();
+                    date.setDate(date.getDate() - Math.floor(Math.random() * 90)); // Random date within last 90 days
+                    const statusOptions = ["Present", "Absent", "Late"];
+                    const status = statusOptions[Math.floor(Math.random() * statusOptions.length)];
+                    
+                    attendance.push({
+                        id: attendance.length + 1,
+                        studentId: studentId,
+                        date: date.toISOString().split('T')[0],
+                        status: status
+                    });
+                }
+                localStorage.setItem('attendance', JSON.stringify(attendance));
+            }
+
+            if (storedFeedback) {
+                feedback = JSON.parse(storedFeedback);
+            } else {
+                // Generate random feedback for demonstration
+                feedback = [];
+                for (let i = 0; i < 50; i++) {
+                    const studentId = Math.floor(Math.random() * 20) + 1;
+                    const subjectId = Math.floor(Math.random() * 8) + 1;
+                    const rating = Math.floor(Math.random() * 5) + 1; // Random rating between 1-5
+                    const comments = [
+                        "Good performance",
+                        "Needs improvement",
+                        "Excellent work",
+                        "Participates well in class",
+                        "Should focus more on assignments",
+                        "Very attentive",
+                        "Creative approach to problems",
+                        "Needs to be more regular"
+                    ];
+                    const randomComment = comments[Math.floor(Math.random() * comments.length)];
+                    
+                    feedback.push({
+                        id: feedback.length + 1,
+                        studentId: studentId,
+                        subjectId: subjectId,
+                        rating: rating,
+                        comments: randomComment
+                    });
+                }
+                localStorage.setItem('feedback', JSON.stringify(feedback));
+            }
+        }
+
+        // Helper function to get grade from marks
+        function getGrade(marks) {
+            if (marks >= 90) return 'A+';
+            if (marks >= 80) return 'A';
+            if (marks >= 70) return 'B+';
+            if (marks >= 60) return 'B';
+            if (marks >= 50) return 'C+';
+            if (marks >= 40) return 'C';
+            return 'D';
+        }
+
+        // Helper function to get performance level from score
+        function getPerformanceLevel(score) {
+            if (score >= 90) return { level: 'Excellent', class: 'excellent' };
+            if (score >= 75) return { level: 'Good', class: 'good' };
+            if (score >= 60) return { level: 'Average', class: 'average' };
+            return { level: 'Poor', class: 'poor' };
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
+            const toastId = 'toast-' + Date.now();
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast ${type}" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+
+        // Authentication
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Simple authentication (in real app, this would be server-side)
+            if (email && password) {
+                currentUser = { email: email, name: email.split('@')[0] };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                document.getElementById('welcomePage').style.display = 'none';
+                document.getElementById('dashboardPage').style.display = 'block';
+                initializeDashboard();
+                showToast('Login successful!', 'success');
+            } else {
+                showToast('Please enter valid credentials', 'error');
+            }
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            
+            // Simple registration (in real app, this would be server-side)
+            if (name && email && password) {
+                currentUser = { email: email, name: name };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                document.getElementById('welcomePage').style.display = 'none';
+                document.getElementById('dashboardPage').style.display = 'block';
+                initializeDashboard();
+                showToast('Registration successful!', 'success');
+            } else {
+                showToast('Please fill all fields', 'error');
+            }
+        });
+
+        document.getElementById('showSignup').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('loginForm').parentElement.parentElement.style.display = 'none';
+            document.getElementById('signupForm').parentElement.parentElement.style.display = 'block';
+        });
+
+        document.getElementById('showLogin').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('signupForm').parentElement.parentElement.style.display = 'none';
+            document.getElementById('loginForm').parentElement.parentElement.style.display = 'block';
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('dashboardPage').style.display = 'none';
+            document.getElementById('welcomePage').style.display = 'block';
+            showToast('Logged out successfully', 'info');
+        });
+
+        // Navigation
+        document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Update active state
+                document.querySelectorAll('.nav-link').forEach(navLink => {
+                    navLink.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Show selected page
+                const pageName = this.getAttribute('data-page');
+                document.querySelectorAll('.page-content').forEach(page => {
+                    page.style.display = 'none';
+                });
+                document.getElementById(pageName + 'Page').style.display = 'block';
+                
+                // Update page-specific content
+                updatePageContent(pageName);
+            });
+        });
+
+        // Toggle sidebar
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+            document.getElementById('mainContent').classList.toggle('expanded');
+        });
+
+        // Initialize dashboard
+        function initializeDashboard() {
+            initializeData();
+            updateOverview();
+            updateStudentsTable();
+            updateSubjectsTable();
+            updateMarksTable();
+            updateAttendanceTable();
+            updateFeedbackTable();
+            updatePerformanceAnalysis();
+            initializeCharts();
+        }
+
+        // Update overview page
+        function updateOverview() {
+            // Update stats
+            document.getElementById('totalStudents').textContent = students.length;
+            document.getElementById('totalSubjects').textContent = subjects.length;
+            
+            // Calculate average attendance
+            let totalAttendanceDays = 0;
+            let presentDays = 0;
+            
+            students.forEach(student => {
+                const studentAttendance = attendance.filter(a => a.studentId === student.id);
+                totalAttendanceDays += studentAttendance.length;
+                presentDays += studentAttendance.filter(a => a.status === 'Present').length;
+            });
+            
+            const avgAttendance = totalAttendanceDays > 0 ? Math.round((presentDays / totalAttendanceDays) * 100) : 0;
+            document.getElementById('avgAttendance').textContent = avgAttendance + '%';
+            
+            // Calculate average marks
+            let totalMarks = 0;
+            let marksCount = 0;
+            
+            marks.forEach(mark => {
+                totalMarks += mark.marks;
+                marksCount++;
+            });
+            
+            const avgMarks = marksCount > 0 ? Math.round(totalMarks / marksCount) : 0;
+            document.getElementById('avgMarks').textContent = avgMarks;
+            
+            // Update top performers table
+            updateTopPerformersTable();
+            
+            // Update bottom performers table
+            updateBottomPerformersTable();
+            
+            // Update charts
+            updateCharts();
+        }
+
+        // Update top performers table
+        function updateTopPerformersTable() {
+            const topPerformersTable = document.getElementById('topPerformersTable');
+            topPerformersTable.innerHTML = '';
+            
+            // Calculate average marks for each student
+            const studentAverages = [];
+            
+            students.forEach(student => {
+                const studentMarks = marks.filter(m => m.studentId === student.id);
+                if (studentMarks.length > 0) {
+                    const totalMarks = studentMarks.reduce((sum, mark) => sum + mark.marks, 0);
+                    const avgMarks = totalMarks / studentMarks.length;
+                    
+                    studentAverages.push({
+                        id: student.id,
+                        name: student.name,
+                        avgMarks: Math.round(avgMarks)
+                    });
+                }
+            });
+            
+            // Sort by average marks (descending)
+            studentAverages.sort((a, b) => b.avgMarks - a.avgMarks);
+            
+            // Display top 5 performers
+            for (let i = 0; i < Math.min(5, studentAverages.length); i++) {
+                const performer = studentAverages[i];
+                const performance = getPerformanceLevel(performer.avgMarks);
+                
+                const row = `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${performer.name}</td>
+                        <td>${performer.avgMarks}</td>
+                        <td><span class="performance-badge ${performance.class}">${performance.level}</span></td>
+                    </tr>
+                `;
+                
+                topPerformersTable.insertAdjacentHTML('beforeend', row);
+            }
+        }
+
+        // Update bottom performers table
+        function updateBottomPerformersTable() {
+            const bottomPerformersTable = document.getElementById('bottomPerformersTable');
+            bottomPerformersTable.innerHTML = '';
+            
+            // Calculate average marks for each student
+            const studentAverages = [];
+            
+            students.forEach(student => {
+                const studentMarks = marks.filter(m => m.studentId === student.id);
+                if (studentMarks.length > 0) {
+                    const totalMarks = studentMarks.reduce((sum, mark) => sum + mark.marks, 0);
+                    const avgMarks = totalMarks / studentMarks.length;
+                    
+                    studentAverages.push({
+                        id: student.id,
+                        name: student.name,
+                        avgMarks: Math.round(avgMarks)
+                    });
+                }
+            });
+            
+            // Sort by average marks (ascending)
+            studentAverages.sort((a, b) => a.avgMarks - b.avgMarks);
+            
+            // Display bottom 5 performers
+            for (let i = 0; i < Math.min(5, studentAverages.length); i++) {
+                const performer = studentAverages[i];
+                const performance = getPerformanceLevel(performer.avgMarks);
+                
+                const row = `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${performer.name}</td>
+                        <td>${performer.avgMarks}</td>
+                        <td><span class="performance-badge ${performance.class}">${performance.level}</span></td>
+                    </tr>
+                `;
+                
+                bottomPerformersTable.insertAdjacentHTML('beforeend', row);
+            }
+        }
+
+        // Update students table
+        function updateStudentsTable() {
+            const studentsTable = document.getElementById('studentsTable');
+            studentsTable.innerHTML = '';
+            
+            students.forEach(student => {
+                const row = `
+                    <tr>
+                        <td>${student.id}</td>
+                        <td>${student.name}</td>
+                        <td>${student.email}</td>
+                        <td>${student.grade}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary btn-action" onclick="editStudent(${student.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-action" onclick="deleteStudent(${student.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                
+                studentsTable.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // Update subjects table
+        function updateSubjectsTable() {
+            const subjectsTable = document.getElementById('subjectsTable');
+            subjectsTable.innerHTML = '';
+            
+            subjects.forEach(subject => {
+                const row = `
+                    <tr>
+                        <td>${subject.id}</td>
+                        <td>${subject.name}</td>
+                        <td>${subject.code}</td>
+                        <td>${subject.credits}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary btn-action" onclick="editSubject(${subject.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-action" onclick="deleteSubject(${subject.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                
+                subjectsTable.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // Update marks table
+        function updateMarksTable() {
+            const marksTable = document.getElementById('marksTable');
+            marksTable.innerHTML = '';
+            
+            marks.forEach(mark => {
+                const student = students.find(s => s.id === mark.studentId);
+                const subject = subjects.find(s => s.id === mark.subjectId);
+                
+                const row = `
+                    <tr>
+                        <td>${mark.id}</td>
+                        <td>${student ? student.name : 'Unknown'}</td>
+                        <td>${subject ? subject.name : 'Unknown'}</td>
+                        <td>${mark.marks}</td>
+                        <td>${mark.grade}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary btn-action" onclick="editMark(${mark.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-action" onclick="deleteMark(${mark.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                
+                marksTable.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // Update attendance table
+        function updateAttendanceTable() {
+            const attendanceTable = document.getElementById('attendanceTable');
+            attendanceTable.innerHTML = '';
+            
+            attendance.forEach(att => {
+                const student = students.find(s => s.id === att.studentId);
+                
+                const row = `
+                    <tr>
+                        <td>${att.id}</td>
+                        <td>${student ? student.name : 'Unknown'}</td>
+                        <td>${att.date}</td>
+                        <td>${att.status}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary btn-action" onclick="editAttendance(${att.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-action" onclick="deleteAttendance(${att.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                
+                attendanceTable.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // Update feedback table
+        function updateFeedbackTable() {
+            const feedbackTable = document.getElementById('feedbackTable');
+            feedbackTable.innerHTML = '';
+            
+            feedback.forEach(fb => {
+                const student = students.find(s => s.id === fb.studentId);
+                const subject = subjects.find(s => s.id === fb.subjectId);
+                
+                const row = `
+                    <tr>
+                        <td>${fb.id}</td>
+                        <td>${student ? student.name : 'Unknown'}</td>
+                        <td>${subject ? subject.name : 'Unknown'}</td>
+                        <td>${fb.rating}</td>
+                        <td>${fb.comments}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary btn-action" onclick="editFeedback(${fb.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-action" onclick="deleteFeedback(${fb.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                
+                feedbackTable.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // Update performance analysis
+        function updatePerformanceAnalysis() {
+            const performanceAnalysisTable = document.getElementById('performanceAnalysisTable');
+            performanceAnalysisTable.innerHTML = '';
+            
+            students.forEach(student => {
+                // Calculate average marks
+                const studentMarks = marks.filter(m => m.studentId === student.id);
+                let avgMarks = 0;
+                if (studentMarks.length > 0) {
+                    const totalMarks = studentMarks.reduce((sum, mark) => sum + mark.marks, 0);
+                    avgMarks = totalMarks / studentMarks.length;
+                }
+                
+                // Calculate attendance percentage
+                const studentAttendance = attendance.filter(a => a.studentId === student.id);
+                let attendancePercentage = 0;
+                if (studentAttendance.length > 0) {
+                    const presentDays = studentAttendance.filter(a => a.status === 'Present').length;
+                    attendancePercentage = (presentDays / studentAttendance.length) * 100;
+                }
+                
+                // Calculate average feedback score
+                const studentFeedback = feedback.filter(f => f.studentId === student.id);
+                let avgFeedbackScore = 0;
+                if (studentFeedback.length > 0) {
+                    const totalRating = studentFeedback.reduce((sum, fb) => sum + fb.rating, 0);
+                    avgFeedbackScore = (totalRating / studentFeedback.length) * 20; // Convert to 0-100 scale
+                }
+                
+                // Calculate performance score
+                const performanceScore = (avgMarks * 0.7) + (attendancePercentage * 0.2) + (avgFeedbackScore * 0.1);
+                const performance = getPerformanceLevel(performanceScore);
+                
+                const row = `
+                    <tr>
+                        <td>${student.name}</td>
+                        <td>${Math.round(avgMarks)}</td>
+                        <td>${Math.round(attendancePercentage)}%</td>
+                        <td>${Math.round(avgFeedbackScore)}</td>
+                        <td>${Math.round(performanceScore)}</td>
+                        <td><span class="performance-badge ${performance.class}">${performance.level}</span></td>
+                    </tr>
+                `;
+                
+                performanceAnalysisTable.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+            // Initialize charts
+        function initializeCharts() {
+            
+            // Performance by Grade Chart
+            const performanceByGradeCtx = document.getElementById('performanceByGradeChart').getContext('2d');
+            window.performanceByGradeChart = new Chart(performanceByGradeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+                    datasets: [{
+                        label: 'Average Performance Score',
+                        data: [0, 0, 0, 0],
+                        backgroundColor: 'rgba(109, 76, 65, 0.7)',
+                        borderColor: 'rgba(109, 76, 65, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Subject Performance Chart
+            const subjectPerformanceCtx = document.getElementById('subjectPerformanceChart').getContext('2d');
+            window.subjectPerformanceChart = new Chart(subjectPerformanceCtx, {
+                type: 'radar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Average Marks',
+                        data: [],
+                        backgroundColor: 'rgba(109, 76, 65, 0.2)',
+                        borderColor: 'rgba(109, 76, 65, 1)',
+                        borderWidth: 1,
+                        pointBackgroundColor: 'rgba(109, 76, 65, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            updateCharts();
+        }
+
+        // Update charts
+        function updateCharts() {
+            // (Removed Marks Distribution, Subject Difficulty, and Attendance vs Performance chart updates)
+            
+            // Update Performance by Grade Chart
+            const gradePerformance = [0, 0, 0, 0]; // Grades 9, 10, 11, 12
+            const gradeCounts = [0, 0, 0, 0];
+            
+            students.forEach(student => {
+                // Calculate performance score
+                const studentMarks = marks.filter(m => m.studentId === student.id);
+                let avgMarks = 0;
+                if (studentMarks.length > 0) {
+                    const totalMarks = studentMarks.reduce((sum, mark) => sum + mark.marks, 0);
+                    avgMarks = totalMarks / studentMarks.length;
+                }
+                
+                const studentAttendance = attendance.filter(a => a.studentId === student.id);
+                let attendancePercentage = 0;
+                if (studentAttendance.length > 0) {
+                    const presentDays = studentAttendance.filter(a => a.status === 'Present').length;
+                    attendancePercentage = (presentDays / studentAttendance.length) * 100;
+                }
+                
+                const studentFeedback = feedback.filter(f => f.studentId === student.id);
+                let avgFeedbackScore = 0;
+                if (studentFeedback.length > 0) {
+                    const totalRating = studentFeedback.reduce((sum, fb) => sum + fb.rating, 0);
+                    avgFeedbackScore = (totalRating / studentFeedback.length) * 20;
+                }
+                
+                const performanceScore = (avgMarks * 0.7) + (attendancePercentage * 0.2) + (avgFeedbackScore * 0.1);
+                
+                const gradeIndex = parseInt(student.grade) - 9;
+                if (gradeIndex >= 0 && gradeIndex < 4) {
+                    gradePerformance[gradeIndex] += performanceScore;
+                    gradeCounts[gradeIndex]++;
+                }
+            });
+            
+            for (let i = 0; i < 4; i++) {
+                if (gradeCounts[i] > 0) {
+                    gradePerformance[i] = Math.round(gradePerformance[i] / gradeCounts[i]);
+                }
+            }
+            
+            window.performanceByGradeChart.data.datasets[0].data = gradePerformance;
+            window.performanceByGradeChart.update();
+            
+            // Update Subject Performance Chart
+            const subjectPerformanceLabels = [];
+            const subjectPerformanceData = [];
+            
+            subjects.forEach(subject => {
+                const subjectMarks = marks.filter(m => m.subjectId === subject.id);
+                if (subjectMarks.length > 0) {
+                    const totalMarks = subjectMarks.reduce((sum, mark) => sum + mark.marks, 0);
+                    const avgMarks = totalMarks / subjectMarks.length;
+                    
+                    subjectPerformanceLabels.push(subject.name);
+                    subjectPerformanceData.push(Math.round(avgMarks));
+                }
+            });
+            
+            window.subjectPerformanceChart.data.labels = subjectPerformanceLabels;
+            window.subjectPerformanceChart.data.datasets[0].data = subjectPerformanceData;
+            window.subjectPerformanceChart.update();
+        }
+
+        // Update page content based on selected page
+        function updatePageContent(pageName) {
+            if (pageName === 'students') {
+                updateStudentsTable();
+            } else if (pageName === 'subjects') {
+                updateSubjectsTable();
+            } else if (pageName === 'marks') {
+                updateMarksTable();
+                populateStudentSubjectSelects();
+            } else if (pageName === 'attendance') {
+                updateAttendanceTable();
+                populateStudentSelects();
+            } else if (pageName === 'feedback') {
+                updateFeedbackTable();
+                populateStudentSubjectSelects();
+            } else if (pageName === 'performance') {
+                updatePerformanceAnalysis();
+                updateCharts();
+            } else if (pageName === 'overview') {
+                updateOverview();
+            }
+        }
+
+        // Populate student selects in forms
+        function populateStudentSelects() {
+            const studentSelects = document.querySelectorAll('#markStudent, #attendanceStudent, #feedbackStudent');
+            
+            studentSelects.forEach(select => {
+                select.innerHTML = '<option value="">Select Student</option>';
+                
+                students.forEach(student => {
+                    const option = `<option value="${student.id}">${student.name}</option>`;
+                    select.insertAdjacentHTML('beforeend', option);
+                });
+            });
+        }
+
+        // Populate student and subject selects in forms
+        function populateStudentSubjectSelects() {
+            populateStudentSelects();
+            
+            const subjectSelects = document.querySelectorAll('#markSubject, #feedbackSubject');
+            
+            subjectSelects.forEach(select => {
+                select.innerHTML = '<option value="">Select Subject</option>';
+                
+                subjects.forEach(subject => {
+                    const option = `<option value="${subject.id}">${subject.name}</option>`;
+                    select.insertAdjacentHTML('beforeend', option);
+                });
+            });
+        }
+
+        // Add Student Form
+        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('studentName').value;
+            const email = document.getElementById('studentEmail').value;
+            const grade = document.getElementById('studentGrade').value;
+            
+            const newStudent = {
+                id: students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1,
+                name: name,
+                email: email,
+                grade: grade
+            };
+            
+            students.push(newStudent);
+            localStorage.setItem('students', JSON.stringify(students));
+            
+            updateStudentsTable();
+            updateOverview();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
+            modal.hide();
+            
+            // Reset form
+            this.reset();
+            
+            showToast('Student added successfully!', 'success');
+        });
+
+        // Add Subject Form
+        document.getElementById('addSubjectForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('subjectName').value;
+            const code = document.getElementById('subjectCode').value;
+            const credits = document.getElementById('subjectCredits').value;
+            
+            const newSubject = {
+                id: subjects.length > 0 ? Math.max(...subjects.map(s => s.id)) + 1 : 1,
+                name: name,
+                code: code,
+                credits: parseInt(credits)
+            };
+            
+            subjects.push(newSubject);
+            localStorage.setItem('subjects', JSON.stringify(subjects));
+            
+            updateSubjectsTable();
+            updateOverview();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addSubjectModal'));
+            modal.hide();
+            
+            // Reset form
+            this.reset();
+            
+            showToast('Subject added successfully!', 'success');
+        });
+
+        // Add Mark Form
+        document.getElementById('addMarkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const studentId = parseInt(document.getElementById('markStudent').value);
+            const subjectId = parseInt(document.getElementById('markSubject').value);
+            const markValue = parseInt(document.getElementById('markValue').value);
+            
+            // Check if this student-subject combination already exists
+            const existingMark = marks.find(m => m.studentId === studentId && m.subjectId === subjectId);
+            if (existingMark) {
+                showToast('Mark for this student and subject already exists!', 'error');
+                return;
+            }
+            
+            const newMark = {
+                id: marks.length > 0 ? Math.max(...marks.map(m => m.id)) + 1 : 1,
+                studentId: studentId,
+                subjectId: subjectId,
+                marks: markValue,
+                grade: getGrade(markValue)
+            };
+            
+            marks.push(newMark);
+            localStorage.setItem('marks', JSON.stringify(marks));
+            
+            updateMarksTable();
+            updateOverview();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addMarkModal'));
+            modal.hide();
+            
+            // Reset form
+            this.reset();
+            
+            showToast('Mark added successfully!', 'success');
+        });
+
+        // Add Attendance Form
+        document.getElementById('addAttendanceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const studentId = parseInt(document.getElementById('attendanceStudent').value);
+            const date = document.getElementById('attendanceDate').value;
+            const status = document.getElementById('attendanceStatus').value;
+            
+            const newAttendance = {
+                id: attendance.length > 0 ? Math.max(...attendance.map(a => a.id)) + 1 : 1,
+                studentId: studentId,
+                date: date,
+                status: status
+            };
+            
+            attendance.push(newAttendance);
+            localStorage.setItem('attendance', JSON.stringify(attendance));
+            
+            updateAttendanceTable();
+            updateOverview();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addAttendanceModal'));
+            modal.hide();
+            
+            // Reset form
+            this.reset();
+            
+            showToast('Attendance added successfully!', 'success');
+        });
+
+        // Add Feedback Form
+        document.getElementById('addFeedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const studentId = parseInt(document.getElementById('feedbackStudent').value);
+            const subjectId = parseInt(document.getElementById('feedbackSubject').value);
+            const rating = parseInt(document.getElementById('feedbackRating').value);
+            const comments = document.getElementById('feedbackComments').value;
+            
+            const newFeedback = {
+                id: feedback.length > 0 ? Math.max(...feedback.map(f => f.id)) + 1 : 1,
+                studentId: studentId,
+                subjectId: subjectId,
+                rating: rating,
+                comments: comments
+            };
+            
+            feedback.push(newFeedback);
+            localStorage.setItem('feedback', JSON.stringify(feedback));
+            
+            updateFeedbackTable();
+            updateOverview();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addFeedbackModal'));
+            modal.hide();
+            
+            // Reset form
+            this.reset();
+            
+            showToast('Feedback added successfully!', 'success');
+        });
+
+        // Delete functions
+        function deleteStudent(id) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                students = students.filter(s => s.id !== id);
+                localStorage.setItem('students', JSON.stringify(students));
+                
+                // Also delete related records
+                marks = marks.filter(m => m.studentId !== id);
+                localStorage.setItem('marks', JSON.stringify(marks));
+                
+                attendance = attendance.filter(a => a.studentId !== id);
+                localStorage.setItem('attendance', JSON.stringify(attendance));
+                
+                feedback = feedback.filter(f => f.studentId !== id);
+                localStorage.setItem('feedback', JSON.stringify(feedback));
+                
+                updateStudentsTable();
+                updateOverview();
+                
+                showToast('Student deleted successfully!', 'success');
+            }
+        }
+
+        function deleteSubject(id) {
+            if (confirm('Are you sure you want to delete this subject?')) {
+                subjects = subjects.filter(s => s.id !== id);
+                localStorage.setItem('subjects', JSON.stringify(subjects));
+                
+                // Also delete related records
+                marks = marks.filter(m => m.subjectId !== id);
+                localStorage.setItem('marks', JSON.stringify(marks));
+                
+                feedback = feedback.filter(f => f.subjectId !== id);
+                localStorage.setItem('feedback', JSON.stringify(feedback));
+                
+                updateSubjectsTable();
+                updateOverview();
+                
+                showToast('Subject deleted successfully!', 'success');
+            }
+        }
+
+        function deleteMark(id) {
+            if (confirm('Are you sure you want to delete this mark?')) {
+                marks = marks.filter(m => m.id !== id);
+                localStorage.setItem('marks', JSON.stringify(marks));
+                
+                updateMarksTable();
+                updateOverview();
+                
+                showToast('Mark deleted successfully!', 'success');
+            }
+        }
+
+        function deleteAttendance(id) {
+            if (confirm('Are you sure you want to delete this attendance record?')) {
+                attendance = attendance.filter(a => a.id !== id);
+                localStorage.setItem('attendance', JSON.stringify(attendance));
+                
+                updateAttendanceTable();
+                updateOverview();
+                
+                showToast('Attendance record deleted successfully!', 'success');
+            }
+        }
+
+        function deleteFeedback(id) {
+            if (confirm('Are you sure you want to delete this feedback?')) {
+                feedback = feedback.filter(f => f.id !== id);
+                localStorage.setItem('feedback', JSON.stringify(feedback));
+                
+                updateFeedbackTable();
+                updateOverview();
+                
+                showToast('Feedback deleted successfully!', 'success');
+            }
+        }
+
+        // Edit functions (simplified for this example)
+        function editStudent(id) {
+            showToast('Edit functionality would be implemented here', 'info');
+        }
+
+        function editSubject(id) {
+            showToast('Edit functionality would be implemented here', 'info');
+        }
+
+        function editMark(id) {
+            showToast('Edit functionality would be implemented here', 'info');
+        }
+
+        function editAttendance(id) {
+            showToast('Edit functionality would be implemented here', 'info');
+        }
+
+        function editFeedback(id) {
+            showToast('Edit functionality would be implemented here', 'info');
+        }
+
+        // Check if user is already logged in
+        window.addEventListener('DOMContentLoaded', function() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                document.getElementById('welcomePage').style.display = 'none';
+                document.getElementById('dashboardPage').style.display = 'block';
+                initializeDashboard();
+            }
+        });
+    </script>
+</body>
+</html>
